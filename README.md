@@ -42,3 +42,7 @@ Suppression ciblée d’une classe avec confirmation et export de sauvegarde pro
 ## Version 1.2
 
 Lecture CSV avec guillemets et champs multilignes. Détection de la colonne Élèves de Pronote, ou des colonnes Nom et Prénom ; seules ces colonnes sont importées. Les titres sont ignorés. Bouton de réparation de la classe existante avec aperçu et confirmation, conservant les identifiants des élèves, leurs observations et leurs équipes.
+
+## Version 1.3
+
+Sélecteur d’activité permanent en haut ; une nouvelle séance sans reprise n’impose plus Basketball. Accès à la création d’un match et à ses scores depuis les critères. Zone Score du match visible sur le terrain avec indication avant la création d’une rencontre.

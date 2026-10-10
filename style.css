@@ -2,3 +2,5 @@
 
 
 .danger{color:#a52d30;border-color:#edb4b4;background:#fff0ef}.danger:hover{background:#ffe0dd;border-color:#a52d30}
+
+.score-help{margin-top:16px;padding:18px;border:1px dashed #8cae9e;border-radius:12px;background:#f4f8f4}.score-help p{font-size:14px;color:var(--muted)}
