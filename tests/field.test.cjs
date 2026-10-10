@@ -13,3 +13,12 @@ run(`actions['switch-team']({dataset:{id:'${b}'}})`);assert.equal(run('activeMat
 run(`actions['quick-score']({dataset:{match:activeMatch,team:'${b}',delta:'1'}})`);assert.equal(run('session().matches[0].scoreB'),1);assert(!node('dialog').open);
 run("actions['terrain-back']()");assert(!classes.has('terrain-focus'));
 console.log('PASS: écran observation unique, élèves et collectif, sélection directe, score sans dialogue, changement d’équipe et chrono stable.');
+
+const html=node('content').innerHTML;
+run("actions.view({dataset:{view:'observe'}})");
+const field=node('content').innerHTML;
+assert(field.includes('class="individual-area"'));
+assert(field.indexOf('class="collective-area"')>field.indexOf('class="field-cards"'));
+assert(!field.includes('<details class="field-options"'));
+for(const action of ['rename-team','presence','terrain-mode','clock-reset'])assert(field.includes('data-action="'+action+'"'));
+console.log('PASS: élèves en zone distincte avant le collectif et options directement visibles.');
