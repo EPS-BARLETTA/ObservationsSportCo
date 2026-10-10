@@ -35,3 +35,11 @@ assert.equal(run('session().matches[0].scoreA'),2);assert(node('poolRanking').in
 console.log('PASS: cadres de rotations et boutons de score actualisant le classement.');
 run('actions.pool()');assert.equal(node('dialogTitle').textContent,'Combien de terrains ?');node('courtCount').value='2';run('dialogSubmit()');assert.equal(run('session().courts'),2);assert(node('dialogBody').innerHTML.includes('Au repos :'));assert(node('dialogBody').innerHTML.includes('match-referee'));
 console.log('PASS: choix des terrains puis validation et affichage des rôles.');
+run("session().matches[0].notes.test='Observation conservée';C.setScore(session().matches[0],'a',0);C.setScore(session().matches[0],'b',0)");
+const playedBefore=run('C.standings(session()).reduce((sum,r)=>sum+r.played,0)');
+run("actions['clear-match-score']({dataset:{id:session().matches[0].id}})");
+assert.equal(run('session().matches[0].scoreA'),null);assert.equal(run('session().matches[0].scoreB'),null);
+assert.equal(run('C.standings(session()).reduce((sum,r)=>sum+r.played,0)'),playedBefore-2);
+assert.equal(run('session().matches[0].notes.test'),'Observation conservée');
+assert(node('dialogBody').innerHTML.includes('Effacer le score'));
+console.log('PASS: effacer un 0–0 retire le match du classement et conserve les observations.');
