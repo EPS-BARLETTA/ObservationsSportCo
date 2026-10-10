@@ -72,6 +72,22 @@ function ensurePool(s){
  });const {a,b}=pending.shift();addMatch(s,a,b);lastSeen.set(a,s.matches.length-1);lastSeen.set(b,s.matches.length-1)}
  return s.matches;
 }
+function poolRotations(s){
+ ensurePool(s);const ids=s.teams.map(t=>t.id),n=ids.length;if(n<2)return [];
+ const size=n+n%2,k=Math.floor(n/2),ring=Array(size).fill(null),used=new Set(),rounds=[];
+ for(let i=0;i<k;i++){ring[i]=ids[i];ring[size-1-i]=ids[i+k]}
+ if(n%2)ring[k]=ids[n-1];
+ for(let r=0;r<size-1;r++){
+  const matches=[],referees=[];
+  for(let i=0;i<size/2;i++){const a=ring[i],b=ring[size-1-i];if(a===null||b===null){if(a||b)referees.push(a||b);continue}
+   const m=s.matches.find(m=>!used.has(m.id)&&((m.a===a&&m.b===b)||(m.a===b&&m.b===a)));if(m){matches.push(m);used.add(m.id)}
+  }
+  rounds.push({matches,referees});ring.splice(1,0,ring.pop());
+ }
+ // Preserve additional encounters as extra rotations, without playing twice at once.
+ const extras=s.matches.filter(m=>!used.has(m.id));while(extras.length){const matches=[],busy=new Set();for(let i=0;i<extras.length;){const m=extras[i];if(!busy.has(m.a)&&!busy.has(m.b)){matches.push(m);busy.add(m.a);busy.add(m.b);extras.splice(i,1)}else i++}rounds.push({matches,referees:ids.filter(id=>!busy.has(id))})}
+ return rounds;
+}
 function standings(s){const rows=s.teams.map(t=>({team:t,played:0,w:0,d:0,l:0,for:0,against:0,points:0}));for(const m of s.matches){if(m.scoreA===null||m.scoreB===null)continue;const a=rows.find(r=>r.team.id===m.a),b=rows.find(r=>r.team.id===m.b);if(!a||!b)continue;a.played++;b.played++;a.for+=m.scoreA;a.against+=m.scoreB;b.for+=m.scoreB;b.against+=m.scoreA;if(m.scoreA===m.scoreB){a.d++;b.d++;a.points++;b.points++}else{const win=m.scoreA>m.scoreB?a:b,lose=win===a?b:a;win.w++;lose.l++;win.points+=3}}return rows.sort((a,b)=>b.points-a.points||(b.for-b.against)-(a.for-a.against)||b.for-a.for)}
 function valuesFor(s,subject,criterion){return [s,...s.matches].map(x=>x.observations?.[subject]?.[criterion]).filter(v=>v!==undefined)}
 function validate(db){
@@ -87,6 +103,6 @@ function validate(db){
  }
  if(typeof db.selectedClass!=='string'||typeof db.selectedSession!=='string')throw Error('Sélection invalide.');return db;
 }
-const API={colors,uid,empty,addClass,removeClass,cleanRoster,rosterRepairPlan,repairClassRoster,appendStudents,newSession,putTeam,moveStudent,addCriterion,setObservation,addMatch,quickMatch,changeTeamScore,clockRemaining,clockDuration,clockStart,clockPause,clockReset,setScore,ensurePool,standings,valuesFor,validate};if(typeof module!=='undefined')module.exports=API;else root.SportCo=API;
+const API={colors,uid,empty,addClass,removeClass,cleanRoster,rosterRepairPlan,repairClassRoster,appendStudents,newSession,putTeam,moveStudent,addCriterion,setObservation,addMatch,quickMatch,changeTeamScore,clockRemaining,clockDuration,clockStart,clockPause,clockReset,setScore,ensurePool,poolRotations,standings,valuesFor,validate};if(typeof module!=='undefined')module.exports=API;else root.SportCo=API;
 })(typeof window!=='undefined'?window:globalThis);
 

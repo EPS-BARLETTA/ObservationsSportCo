@@ -29,3 +29,7 @@ run("actions['pool-observe']({dataset:{id:session().matches[0].id}})");assert(!n
 const previous=run('activeMatch');run("actions['pool-next']()");assert.notEqual(run('activeMatch'),previous);
 assert(node('content').innerHTML.includes('match-recap'));assert(!node('content').innerHTML.includes('id="quickOpponent"'));
 console.log('PASS: panneau poule, reprise sans doublon, observation et match suivant.');
+assert(node('dialogBody').innerHTML.includes('Rotation 1'));assert(node('dialogBody').innerHTML.includes('rotation-color-1'));assert(node('dialogBody').innerHTML.includes('Arbitrage :'));
+run("actions['pool-score']({dataset:{match:session().matches[0].id,team:session().matches[0].a,delta:'1'}})");
+assert.equal(run('session().matches[0].scoreA'),2);assert(node('poolRanking').innerHTML.includes('Classement'));
+console.log('PASS: cadres de rotations et boutons de score actualisant le classement.');
