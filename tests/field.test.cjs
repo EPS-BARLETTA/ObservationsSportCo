@@ -43,3 +43,9 @@ assert.equal(run('C.standings(session()).reduce((sum,r)=>sum+r.played,0)'),playe
 assert.equal(run('session().matches[0].notes.test'),'Observation conservée');
 assert(node('dialogBody').innerHTML.includes('Effacer le score'));
 console.log('PASS: effacer un 0–0 retire le match du classement et conserve les observations.');
+run("actions.view({dataset:{view:'results'}})");assert(node('content').innerHTML.includes('pupil-report'));assert(!node('content').innerHTML.includes('Résultats des matchs'));
+run("cls().students[0].name='<Élève & test>';session().observations[cls().students[0].id]={};session().matches[0].notes={}");
+const report=run('buildReportHTML()');assert(report.startsWith('<!doctype html>'));assert(report.includes('&lt;Élève &amp; test&gt;'));assert(!report.includes('<Élève & test>'));assert(report.includes('Mon bilan individuel'));assert(report.includes('Le bilan collectif'));assert(report.includes('Gagnés'));assert(report.includes('Perdus'));assert(!report.includes('data-score'));assert(!report.includes('<script'));assert(!report.includes('https://'));assert(report.includes('.report-profile:target'));
+const firstId=run('cls().students[0].id');assert(report.includes('href="#'+firstId+'"'));assert(report.includes('id="'+firstId+'"'));
+run("actions['pupil-report']({dataset:{id:cls().students[0].id}})");assert(node('dialogBody').innerHTML.includes('Mon bilan individuel'));
+console.log('PASS: bilan par élève, navigation autonome sans réseau, noms échappés, individuel/collectif et résultats sans détail des matchs.');
