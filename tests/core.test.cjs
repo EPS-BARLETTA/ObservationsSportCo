@@ -18,3 +18,14 @@ assert.equal(C.appendStudents(c,'Élève 0\nNouvel élève'),1);
 assert.deepEqual(C.validate(JSON.parse(JSON.stringify(db))),db);
 for(const mutate of [d=>d.sessions[0].teams[1].members[0]=ids[0],d=>d.sessions[0].matches[0].b=a.id,d=>d.sessions[0].matches[0].scoreA=-1,d=>d.sessions[0].observations[ids[0]][k.id]=4,d=>d.sessions[0].teams[0].color='url(evil)',d=>d.sessions[0].criteria[0].targets=['unknown']]){const bad=structuredClone(db);mutate(bad);assert.throws(()=>C.validate(bad))}
 console.log('PASS: équipes uniques et limites, cibles individuelles, zéro distinct du vide, contextes par match, classement, scores invalides, historique et import.');
+
+
+const oldSession=JSON.stringify(s),mover=next.teams[0].members[0];
+C.moveStudent(next,c,mover,next.teams[1].id);
+assert(!next.teams[0].members.includes(mover));assert(next.teams[1].members.includes(mover));
+assert.equal(JSON.stringify(s),oldSession);
+C.moveStudent(next,c,next.teams[0].members[0],'');assert.equal(next.teams[0].members.length,2);
+assert.doesNotThrow(()=>C.validate(db));
+C.moveStudent(next,c,ids[12],next.teams[1].id);assert.equal(next.teams[1].members.length,6);
+const beforeFailed=JSON.stringify(next);assert.throws(()=>C.moveStudent(next,c,ids[13],next.teams[1].id));assert.equal(JSON.stringify(next),beforeFailed);
+console.log('PASS: déplacement unique, équipe réduite, capacité, historique conservé et import après déplacement.');

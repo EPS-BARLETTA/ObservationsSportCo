@@ -4,6 +4,7 @@ Application statique sans dépendance, conçue pour l’observation en EPS sur i
 
 - Classes et listes d’élèves collées, un nom par ligne ; ajout sans supprimer les anciens élèves.
 - Équipes de 3 à 6 élèves, créées en touchant les cartes ; noms et couleurs modifiables.
+- Déplacement direct d’un élève entre équipes, sans effacer ses observations ; une équipe peut être réduite après un déplacement.
 - Présences par séance ; l’élève absent reste dans son équipe.
 - Critères individuels (tous les élèves ou élèves choisis) et collectifs, avec quatre niveaux, réussite binaire ou compteur.
 - Page par équipe ; observations générales et observations de chaque match stockées séparément.
@@ -30,3 +31,6 @@ Servir le dossier par HTTPS (Vercel : preset Other, pas de build, dossier de sor
 `node tests/core.test.cjs`
 
 Les tests couvrent l’affectation unique, les cibles individuelles, les scores incomplets, le classement, l’historique entre séances et la validation des sauvegardes.
+
+
+La vérification couvre également les déplacements, la limite de six élèves, l’import après réduction d’une équipe et la conservation des séances précédentes. Le fonctionnement sur iPad et le mode hors ligne restent à tester sur appareil.
