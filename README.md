@@ -62,3 +62,7 @@ Activité saisie dans un champ texte libre en haut de l’application, avec sauv
 ## Version 1.7
 
 Mode terrain : masquer l’en-tête, la préparation et les menus pour conserver équipes, chrono, scores et observations ; bouton de sortie visible. Demande de plein écran natif lorsque disponible, avec mode terrain visuel conservé sur les navigateurs iPad qui ne le permettent pas. Sans match sélectionné, le chrono libre est affiché dans la page du terrain. Bouton Renommer directement sur les cartes et la page d’équipe.
+
+## Version 1.8
+
+Observation ouverte directement dans une vue épurée : équipes en onglets, chrono de séance compact dans le coin, stable lors des changements d’équipe, élèves et collectif dans la même grille. Choix de l’adversaire sur place, score +/− en un toucher pour chaque équipe ; la sélection retrouve le dernier match de la paire, Nouveau match crée une rencontre distincte. Réglages et anciens matchs repliés. Aucun panneau flottant sur les cartes.

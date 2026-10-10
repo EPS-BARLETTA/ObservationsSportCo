@@ -1,0 +1,15 @@
+const vm=require('node:vm'),fs=require('node:fs'),assert=require('node:assert/strict'),C=require('../core.js');
+const nodes=new Map(),handlers={},classes=new Set();
+const node=id=>{if(!nodes.has(id))nodes.set(id,{innerHTML:'',value:'',hidden:false,textContent:'',addEventListener(){},classList:{toggle(){}},close(){this.open=false},showModal(){this.open=true},focus(){},select(){}});return nodes.get(id)};
+const doc={getElementById:node,body:{classList:{toggle(k,v){v?classes.add(k):classes.delete(k)}}},addEventListener(k,f){handlers[k]=f},querySelector(){return null},querySelectorAll(){return []},documentElement:{}};
+const ctx=vm.createContext({SportCo:C,document:doc,window:{addEventListener(){}},localStorage:{getItem(){return null},setItem(){}},navigator:{},location:{protocol:'https:'},setTimeout(){},clearTimeout(){},setInterval(){},confirm(){return true},structuredClone,Date,console});
+vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'../app.js'),'utf8'),ctx);
+const run=code=>vm.runInContext(code,ctx);
+run("actions.demo();actions.view({dataset:{view:'observe'}})");assert(classes.has('terrain-focus'));assert.equal(node('sessionClock').innerHTML,'');assert(node('content').innerHTML.includes('collective-card'));assert(node('content').innerHTML.includes('Élève fictif 1'));assert(!node('content').innerHTML.includes('data-action="match-dialog"'));
+const sid=run('session().id'),a=run('session().teams[0].id'),b=run('session().teams[1].id');
+handlers.change({target:{id:'quickOpponent',value:b,dataset:{}}});assert.equal(run('session().matches.length'),1);assert(node('content').innerHTML.includes('data-clock="'+sid+'"'));
+run(`actions['quick-score']({dataset:{match:activeMatch,team:'${a}',delta:'1'}})`);assert.equal(run('session().matches[0].scoreA'),1);
+run(`actions['switch-team']({dataset:{id:'${b}'}})`);assert.equal(run('activeMatch'),run('session().matches[0].id'));assert(node('content').innerHTML.includes('data-clock="'+sid+'"'));
+run(`actions['quick-score']({dataset:{match:activeMatch,team:'${b}',delta:'1'}})`);assert.equal(run('session().matches[0].scoreB'),1);assert(!node('dialog').open);
+run("actions['terrain-back']()");assert(!classes.has('terrain-focus'));
+console.log('PASS: écran observation unique, élèves et collectif, sélection directe, score sans dialogue, changement d’équipe et chrono stable.');
