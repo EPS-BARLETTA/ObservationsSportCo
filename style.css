@@ -4,3 +4,8 @@
 .danger{color:#a52d30;border-color:#edb4b4;background:#fff0ef}.danger:hover{background:#ffe0dd;border-color:#a52d30}
 
 .score-help{margin-top:16px;padding:18px;border:1px dashed #8cae9e;border-radius:12px;background:#f4f8f4}.score-help p{font-size:14px;color:var(--muted)}
+
+.match-clock{display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin-top:20px;border-top:1px solid var(--line);padding-top:20px}.clock-time{display:block;font-size:44px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2;color:var(--ink)}.clock-time.expired{color:#b53333}.match-clock input{width:110px}.match-clock label{flex:0 0 auto}
+
+/* Évite le zoom au double-tap tout en conservant le zoom à deux doigts. */
+html,button,a,input,select,textarea{touch-action:manipulation}

@@ -46,3 +46,11 @@ Lecture CSV avec guillemets et champs multilignes. Détection de la colonne Él�
 ## Version 1.3
 
 Sélecteur d’activité permanent en haut ; une nouvelle séance sans reprise n’impose plus Basketball. Accès à la création d’un match et à ses scores depuis les critères. Zone Score du match visible sur le terrain avec indication avant la création d’une rencontre.
+
+## Version 1.4
+
+Chrono dégressif par match, durée réglable de 1 à 120 minutes, démarrer, pause/reprise, remise à zéro avec confirmation. Échéance sauvegardée pour retrouver le temps restant après une fermeture ou un changement d’équipe. Indication visuelle Temps écoulé au retour sur l’application ; pas de notification système lorsque l’application est fermée.
+
+## Version 1.5
+
+Désactivation du zoom au double-tap via touch-action: manipulation ; zoom à deux doigts conservé. À vérifier sur Safari iPad.

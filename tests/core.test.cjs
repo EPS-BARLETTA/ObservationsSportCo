@@ -49,3 +49,8 @@ const fixdb=C.empty(),fix=C.addClass(fixdb,'À nettoyer','Élèves Encouragement
 const fi=fix.c.students.map(p=>p.id);C.putTeam(fix.s,fix.c,fi.slice(1),'Bleus',C.colors[0]);C.setObservation(fix.s,'',fi[1],fix.s.criteria[0].id,2);
 assert.deepEqual(C.repairClassRoster(fixdb,fix.c.id),{renamed:1,removed:1});assert.equal(fix.c.students[0].id,fi[1]);assert.equal(fix.c.students[0].name,'TEST Alex');assert.equal(fix.s.observations[fi[1]][fix.s.criteria[0].id],2);assert.doesNotThrow(()=>C.validate(fixdb));
 console.log('PASS: colonne Élèves Pronote, titres exclus, noms séparés, guillemets CSV et réparation avec identifiants et observations conservés.');
+
+const timed={};C.clockDuration(timed,60);C.clockStart(timed,1000);assert.equal(C.clockRemaining(timed,11000),50000);C.clockPause(timed,16000);assert.equal(C.clockRemaining(timed,90000),45000);C.clockStart(timed,100000);assert.equal(C.clockRemaining(timed,110000),35000);assert.equal(C.clockRemaining(timed,200000),0);C.clockPause(timed,200000);assert.throws(()=>C.clockStart(timed,210000));C.clockReset(timed);assert.equal(C.clockRemaining(timed),60000);C.clockStart(timed,1000);assert.throws(()=>C.clockDuration(timed,120));assert.throws(()=>C.clockDuration({},0));
+const stored=JSON.parse(JSON.stringify(timed));assert.equal(C.clockRemaining(stored,11000),50000);console.log('PASS: chrono pause/reprise, échéance après fermeture, remise à zéro et durées invalides.');
+
+C.clockReset(timed);assert.equal(timed.clock.running,false);assert.equal(C.clockRemaining(timed),60000);m.clock=structuredClone(timed.clock);assert.doesNotThrow(()=>C.validate(db));const badTimer=structuredClone(db);badTimer.sessions[0].matches[0].clock.durationMs=0;assert.throws(()=>C.validate(badTimer));
