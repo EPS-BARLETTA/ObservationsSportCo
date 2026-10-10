@@ -34,3 +34,7 @@ Les tests couvrent l’affectation unique, les cibles individuelles, les scores 
 
 
 La vérification couvre également les déplacements, la limite de six élèves, l’import après réduction d’une équipe et la conservation des séances précédentes. Le fonctionnement sur iPad et le mode hors ligne restent à tester sur appareil.
+
+## Version 1.1
+
+Suppression ciblée d’une classe avec confirmation et export de sauvegarde proposé : ses séances sont retirées, les autres classes sont préservées. Import TXT/CSV/TSV ou collage Pronote avec nettoyage et vérification avant enregistrement. La première date et les informations suivantes sont retirées de chaque ligne ; les noms composés sont conservés. Tester le format de son export avant de valider.

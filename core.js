@@ -4,6 +4,25 @@ const colors=['#245de9','#d56c17','#168663','#8e54b5','#b83d65','#267d91','#7665
 const uid=()=> 'id_'+(globalThis.crypto?.randomUUID?.()||Math.random().toString(36).slice(2)+Date.now()).replace(/-/g,'');
 const empty=()=>({version:1,classes:[],sessions:[],selectedClass:'',selectedSession:''});
 function addClass(db,name,names){if(!name.trim())throw Error('Donne un nom à la classe.');const c={id:uid(),name:name.trim(),students:[]};db.classes.push(c);appendStudents(c,names);db.selectedClass=c.id;const s=newSession(db,c.id);return {c,s}}
+function removeClass(db,classId){
+ if(!db.classes.some(c=>c.id===classId))throw Error('Classe inconnue.');
+ db.classes=db.classes.filter(c=>c.id!==classId);
+ db.sessions=db.sessions.filter(s=>s.classId!==classId);
+ if(db.selectedClass===classId){db.selectedClass=db.classes[0]?.id||'';db.selectedSession=db.sessions.filter(s=>s.classId===db.selectedClass).at(-1)?.id||'';}
+ else if(!db.sessions.some(s=>s.id===db.selectedSession))db.selectedSession=db.sessions.filter(s=>s.classId===db.selectedClass).at(-1)?.id||'';
+}
+function cleanRoster(text){
+ const rows=text.replace(/^\uFEFF/,'').split(/\r?\n/),names=[];
+ for(let row of rows){
+  row=row.trim();if(!row)continue;
+  row=row.replace(/\d{1,2}[/.\-]\d{1,2}[/.\-]\d{2,4}[\s\S]*$/,'');
+  row=row.replace(/(?:^|[\s;,])(?:Masculin|Féminin|Feminin)\b[\s\S]*$/i,'');
+  row=row.replace(/^\s*\d+[\s;,.]+/,'').replace(/[\t;,]+/g,' ').replace(/"/g,'').replace(/\s+/g,' ').trim();
+  if(!row||/^(?:nom(?: et)? pr[ée]nom|pr[ée]nom nom|nom|pr[ée]nom|classe|liste des [ée]l[èe]ves)\b/i.test(row)||!/[a-zÀ-ÿ]/i.test(row))continue;
+  if(!names.some(n=>n.toLocaleLowerCase('fr')===row.toLocaleLowerCase('fr')))names.push(row);
+ }
+ return names.join('\n');
+}
 function appendStudents(c,text){const seen=new Set(c.students.map(p=>p.name.toLocaleLowerCase('fr')));let count=0;for(const name of text.split(/\r?\n/).map(n=>n.trim()).filter(Boolean)){const key=name.toLocaleLowerCase('fr');if(!seen.has(key)){c.students.push({id:uid(),name});seen.add(key);count++}}return count}
 function newSession(db,classId,previous){const s={id:uid(),classId,label:'Séance '+(db.sessions.filter(x=>x.classId===classId).length+1),date:new Date().toLocaleDateString('sv-SE'),sport:previous?.sport||'Basketball',teams:previous?structuredClone(previous.teams):[],criteria:previous?structuredClone(previous.criteria):[
 {id:uid(),label:'Se démarquer',scope:'individual',type:'level',targets:null},
@@ -38,6 +57,6 @@ function validate(db){
  }
  if(typeof db.selectedClass!=='string'||typeof db.selectedSession!=='string')throw Error('Sélection invalide.');return db;
 }
-const API={colors,uid,empty,addClass,appendStudents,newSession,putTeam,moveStudent,addCriterion,setObservation,addMatch,setScore,standings,valuesFor,validate};if(typeof module!=='undefined')module.exports=API;else root.SportCo=API;
+const API={colors,uid,empty,addClass,removeClass,cleanRoster,appendStudents,newSession,putTeam,moveStudent,addCriterion,setObservation,addMatch,setScore,standings,valuesFor,validate};if(typeof module!=='undefined')module.exports=API;else root.SportCo=API;
 })(typeof window!=='undefined'?window:globalThis);
 

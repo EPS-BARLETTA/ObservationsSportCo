@@ -29,3 +29,14 @@ assert.doesNotThrow(()=>C.validate(db));
 C.moveStudent(next,c,ids[12],next.teams[1].id);assert.equal(next.teams[1].members.length,6);
 const beforeFailed=JSON.stringify(next);assert.throws(()=>C.moveStudent(next,c,ids[13],next.teams[1].id));assert.equal(JSON.stringify(next),beforeFailed);
 console.log('PASS: déplacement unique, équipe réduite, capacité, historique conservé et import après déplacement.');
+
+const roster='Nom;Prénom;Date de naissance;Sexe\nTEST;Alex;01/02/2013;Masculin;ANGLAIS\nDE TEST;Louise;03/04/2014;Féminin;ALLEMAND\nTEST Alex01/02/2013 Masculin';
+assert.equal(C.cleanRoster(roster),'TEST Alex\nDE TEST Louise');
+assert.equal(C.cleanRoster('D’EXEMPLE Jean-Pierre\nLE TEST Anaïs'),'D’EXEMPLE Jean-Pierre\nLE TEST Anaïs');
+const deleted=C.empty(),one=C.addClass(deleted,'Classe à retirer','Fictif Un\nFictif Deux\nFictif Trois'),two=C.addClass(deleted,'Classe conservée','Fictif Autre');
+C.newSession(deleted,one.c.id,one.s);deleted.selectedClass=one.c.id;
+const kept=JSON.stringify(two);C.removeClass(deleted,one.c.id);
+assert.equal(deleted.classes.length,1);assert(deleted.sessions.every(s=>s.classId===two.c.id));assert.equal(deleted.selectedClass,two.c.id);assert.equal(JSON.stringify(two),kept);assert.doesNotThrow(()=>C.validate(deleted));
+C.removeClass(deleted,two.c.id);assert.equal(deleted.classes.length,0);assert.equal(deleted.sessions.length,0);assert.equal(deleted.selectedClass,'');assert.equal(deleted.selectedSession,'');assert.doesNotThrow(()=>C.validate(deleted));
+assert.throws(()=>C.removeClass(deleted,'inconnue'));
+console.log('PASS: nettoyage Pronote, noms composés, suppression ciblée, autres classes préservées et suppression de la dernière classe.');
