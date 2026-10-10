@@ -54,3 +54,5 @@ const timed={};C.clockDuration(timed,60);C.clockStart(timed,1000);assert.equal(C
 const stored=JSON.parse(JSON.stringify(timed));assert.equal(C.clockRemaining(stored,11000),50000);console.log('PASS: chrono pause/reprise, échéance après fermeture, remise à zéro et durées invalides.');
 
 C.clockReset(timed);assert.equal(timed.clock.running,false);assert.equal(C.clockRemaining(timed),60000);m.clock=structuredClone(timed.clock);assert.doesNotThrow(()=>C.validate(db));const badTimer=structuredClone(db);badTimer.sessions[0].matches[0].clock.durationMs=0;assert.throws(()=>C.validate(badTimer));
+
+C.clockDuration(s,120);C.clockStart(s,1000);assert.equal(C.clockRemaining(s,31000),90000);assert.doesNotThrow(()=>C.validate(db));const savedSessionClock=JSON.parse(JSON.stringify(db));assert.equal(C.clockRemaining(savedSessionClock.sessions[0],31000),90000);const badSessionClock=structuredClone(db);badSessionClock.sessions[0].clock.durationMs=0;assert.throws(()=>C.validate(badSessionClock));assert.equal(next.clock,undefined);console.log('PASS: chrono libre sans match, sauvegarde et nouvelle séance indépendante.');

@@ -54,3 +54,7 @@ Chrono dégressif par match, durée réglable de 1 à 120 minutes, démarrer, pa
 ## Version 1.5
 
 Désactivation du zoom au double-tap via touch-action: manipulation ; zoom à deux doigts conservé. À vérifier sur Safari iPad.
+
+## Version 1.6
+
+Activité saisie dans un champ texte libre en haut de l’application, avec sauvegarde immédiate. Chrono libre de séance visible dès l’accueil, sans équipe ni match requis. Les chronos propres à chaque match restent disponibles sous les scores.

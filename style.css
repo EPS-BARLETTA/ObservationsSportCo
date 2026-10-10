@@ -9,3 +9,5 @@
 
 /* Évite le zoom au double-tap tout en conservant le zoom à deux doigts. */
 html,button,a,input,select,textarea{touch-action:manipulation}
+
+.session-clock{margin:18px 0 0;padding:16px 22px}.session-clock .match-clock{border:0;padding:0;margin:0;justify-content:space-between}.session-clock .clock-time{font-size:36px}.session-clock input{width:90px}@media print{.session-clock{display:none}}
