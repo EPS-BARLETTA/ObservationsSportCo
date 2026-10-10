@@ -22,3 +22,10 @@ assert(field.indexOf('class="collective-area"')>field.indexOf('class="field-card
 assert(!field.includes('<details class="field-options"'));
 for(const action of ['rename-team','presence','terrain-mode','clock-reset'])assert(field.includes('data-action="'+action+'"'));
 console.log('PASS: élèves en zone distincte avant le collectif et options directement visibles.');
+run('actions.pool()');assert(node('dialog').open);assert.equal(run('session().matches.length'),3);
+assert(node('dialogBody').innerHTML.includes('poolRanking'));
+run('actions.pool()');assert.equal(run('session().matches.length'),3);
+run("actions['pool-observe']({dataset:{id:session().matches[0].id}})");assert(!node('dialog').open);
+const previous=run('activeMatch');run("actions['pool-next']()");assert.notEqual(run('activeMatch'),previous);
+assert(node('content').innerHTML.includes('match-recap'));assert(!node('content').innerHTML.includes('id="quickOpponent"'));
+console.log('PASS: panneau poule, reprise sans doublon, observation et match suivant.');

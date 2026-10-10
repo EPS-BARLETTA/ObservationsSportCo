@@ -58,6 +58,20 @@ function clockStart(m,now=Date.now()){if(!m.clock)clockDuration(m,300);if(m.cloc
 function clockPause(m,now=Date.now()){if(!m.clock)return;m.clock.remainingMs=clockRemaining(m,now);m.clock.running=false;m.clock.endsAt=null}
 function clockReset(m){if(m.clock?.running)clockPause(m);clockDuration(m,Math.round((m.clock?.durationMs||300000)/1000))}
 function setScore(m,side,value){if(!['a','b'].includes(side)||value!==null&&(!Number.isInteger(value)||value<0||value>9999))throw Error('Score invalide.');m[side==='a'?'scoreA':'scoreB']=value}
+function ensurePool(s){
+ const pending=[];
+ for(let i=0;i<s.teams.length;i++)for(let j=i+1;j<s.teams.length;j++){
+  const a=s.teams[i].id,b=s.teams[j].id;
+  if(!s.matches.some(m=>(m.a===a&&m.b===b)||(m.a===b&&m.b===a)))pending.push({a,b});
+ }
+ const lastSeen=new Map();s.matches.forEach((m,i)=>{lastSeen.set(m.a,i);lastSeen.set(m.b,i)});
+ while(pending.length){const last=s.matches.at(-1);pending.sort((x,y)=>{
+  const overlap=m=>last?Number([last.a,last.b].includes(m.a))+Number([last.a,last.b].includes(m.b)):0;
+  const recent=m=>Math.max(lastSeen.get(m.a)??-1,lastSeen.get(m.b)??-1);
+  return overlap(x)-overlap(y)||recent(x)-recent(y);
+ });const {a,b}=pending.shift();addMatch(s,a,b);lastSeen.set(a,s.matches.length-1);lastSeen.set(b,s.matches.length-1)}
+ return s.matches;
+}
 function standings(s){const rows=s.teams.map(t=>({team:t,played:0,w:0,d:0,l:0,for:0,against:0,points:0}));for(const m of s.matches){if(m.scoreA===null||m.scoreB===null)continue;const a=rows.find(r=>r.team.id===m.a),b=rows.find(r=>r.team.id===m.b);if(!a||!b)continue;a.played++;b.played++;a.for+=m.scoreA;a.against+=m.scoreB;b.for+=m.scoreB;b.against+=m.scoreA;if(m.scoreA===m.scoreB){a.d++;b.d++;a.points++;b.points++}else{const win=m.scoreA>m.scoreB?a:b,lose=win===a?b:a;win.w++;lose.l++;win.points+=3}}return rows.sort((a,b)=>b.points-a.points||(b.for-b.against)-(a.for-a.against)||b.for-a.for)}
 function valuesFor(s,subject,criterion){return [s,...s.matches].map(x=>x.observations?.[subject]?.[criterion]).filter(v=>v!==undefined)}
 function validate(db){
@@ -73,6 +87,6 @@ function validate(db){
  }
  if(typeof db.selectedClass!=='string'||typeof db.selectedSession!=='string')throw Error('Sélection invalide.');return db;
 }
-const API={colors,uid,empty,addClass,removeClass,cleanRoster,rosterRepairPlan,repairClassRoster,appendStudents,newSession,putTeam,moveStudent,addCriterion,setObservation,addMatch,quickMatch,changeTeamScore,clockRemaining,clockDuration,clockStart,clockPause,clockReset,setScore,standings,valuesFor,validate};if(typeof module!=='undefined')module.exports=API;else root.SportCo=API;
+const API={colors,uid,empty,addClass,removeClass,cleanRoster,rosterRepairPlan,repairClassRoster,appendStudents,newSession,putTeam,moveStudent,addCriterion,setObservation,addMatch,quickMatch,changeTeamScore,clockRemaining,clockDuration,clockStart,clockPause,clockReset,setScore,ensurePool,standings,valuesFor,validate};if(typeof module!=='undefined')module.exports=API;else root.SportCo=API;
 })(typeof window!=='undefined'?window:globalThis);
 
