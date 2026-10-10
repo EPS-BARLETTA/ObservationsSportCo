@@ -18,3 +18,9 @@ for(let n=2;n<=9;n++){
  const first=s.matches[0];first.scoreA=3;first.scoreB=1;first.notes.test='Gardé';C.addMatch(s,first.a,first.b);const all=C.poolRotations(s).flatMap(r=>r.matches);assert.equal(all.length,s.matches.length);assert.equal(new Set(all.map(m=>m.id)).size,all.length);assert.equal(first.notes.test,'Gardé');assert.equal(first.scoreA,3);
 }
 console.log('PASS: rotations sans conflit, toutes les rencontres, arbitrage équilibré et matchs supplémentaires conservés.');
+for(let n=2;n<=9;n++)for(let courts=1;courts<=5;courts++){
+ const s={courts,teams:Array.from({length:n},(_,i)=>({id:'t'+i,name:'Équipe '+i})),matches:[]},rounds=C.poolRotations(s),seen=new Set();
+ for(const r of rounds){assert(r.matches.length<=courts);const playing=r.matches.flatMap(m=>[m.a,m.b]);assert.equal(new Set(playing).size,playing.length);const roles=[...playing,...r.referees,...r.rest];assert.equal(roles.length,n);assert.equal(new Set(roles).size,n);assert.equal(r.assignments.length,r.matches.length);r.assignments.forEach((a,i)=>{assert.equal(a.court,i+1);assert.equal(a.matchId,r.matches[i].id);assert.equal(a.referee,r.referees[i]||null)});r.matches.forEach(m=>{assert(!seen.has(m.id));seen.add(m.id)})}
+ assert.equal(seen.size,n*(n-1)/2);const ids=s.matches.map(m=>m.id);s.courts=1;C.poolRotations(s);assert.deepEqual(s.matches.map(m=>m.id),ids);
+}
+console.log('PASS: capacité des terrains, arbitres distincts des joueurs, repos, toutes les rencontres et reconfiguration sans perte.');

@@ -86,7 +86,16 @@ function poolRotations(s){
  }
  // Preserve additional encounters as extra rotations, without playing twice at once.
  const extras=s.matches.filter(m=>!used.has(m.id));while(extras.length){const matches=[],busy=new Set();for(let i=0;i<extras.length;){const m=extras[i];if(!busy.has(m.a)&&!busy.has(m.b)){matches.push(m);busy.add(m.a);busy.add(m.b);extras.splice(i,1)}else i++}rounds.push({matches,referees:ids.filter(id=>!busy.has(id))})}
- return rounds;
+ const courts=Number.isInteger(s.courts)&&s.courts>0?Math.min(s.courts,Math.floor(n/2)):Math.floor(n/2);
+ const scheduled=[],refCount=new Map(),lastRef=new Map();
+ for(const round of rounds)for(let i=0;i<round.matches.length;i+=courts){
+  const matches=round.matches.slice(i,i+courts),busy=new Set(matches.flatMap(m=>[m.a,m.b]));
+  const available=ids.filter(id=>!busy.has(id));available.sort((a,b)=>(refCount.get(a)||0)-(refCount.get(b)||0)||(lastRef.get(a)??-1)-(lastRef.get(b)??-1)||ids.indexOf(a)-ids.indexOf(b));
+  const referees=available.slice(0,matches.length),rest=available.slice(matches.length);
+  referees.forEach(id=>{refCount.set(id,(refCount.get(id)||0)+1);lastRef.set(id,scheduled.length)});
+  scheduled.push({matches,referees,rest,assignments:matches.map((m,j)=>({matchId:m.id,court:j+1,referee:referees[j]||null}))});
+ }
+ return scheduled;
 }
 function standings(s){const rows=s.teams.map(t=>({team:t,played:0,w:0,d:0,l:0,for:0,against:0,points:0}));for(const m of s.matches){if(m.scoreA===null||m.scoreB===null)continue;const a=rows.find(r=>r.team.id===m.a),b=rows.find(r=>r.team.id===m.b);if(!a||!b)continue;a.played++;b.played++;a.for+=m.scoreA;a.against+=m.scoreB;b.for+=m.scoreB;b.against+=m.scoreA;if(m.scoreA===m.scoreB){a.d++;b.d++;a.points++;b.points++}else{const win=m.scoreA>m.scoreB?a:b,lose=win===a?b:a;win.w++;lose.l++;win.points+=3}}return rows.sort((a,b)=>b.points-a.points||(b.for-b.against)-(a.for-a.against)||b.for-a.for)}
 function valuesFor(s,subject,criterion){return [s,...s.matches].map(x=>x.observations?.[subject]?.[criterion]).filter(v=>v!==undefined)}
@@ -94,7 +103,7 @@ function validate(db){
  if(!db||db.version!==1||!Array.isArray(db.classes)||!Array.isArray(db.sessions)||db.classes.length>200||db.sessions.length>2000)throw Error('Sauvegarde incompatible.');
  const ids=new Set(),id=x=>{if(typeof x!=='string'||!/^id_[a-zA-Z0-9]+$/.test(x)||ids.has(x))throw Error('Identifiant invalide.');ids.add(x)},str=x=>{if(typeof x!=='string'||x.length>1000)throw Error('Texte invalide.');};
  for(const c of db.classes){id(c.id);str(c.name);if(!Array.isArray(c.students)||c.students.length>1000)throw Error('Classe invalide.');for(const p of c.students){id(p.id);str(p.name)}}
- for(const s of db.sessions){id(s.id);const c=db.classes.find(c=>c.id===s.classId);if(!c)throw Error('Classe inconnue.');str(s.label);str(s.date);str(s.sport);if(!Array.isArray(s.teams)||!Array.isArray(s.criteria)||!Array.isArray(s.absent)||!Array.isArray(s.matches)||s.teams.length>200||s.criteria.length>50||s.matches.length>1000)throw Error('Séance invalide.');const pupilIds=new Set(c.students.map(p=>p.id)),teamIds=new Set(),members=new Set(),criteria=new Map();
+ for(const s of db.sessions){id(s.id);const c=db.classes.find(c=>c.id===s.classId);if(!c)throw Error('Classe inconnue.');str(s.label);str(s.date);str(s.sport);if(s.courts!==undefined&&(!Number.isInteger(s.courts)||s.courts<1||s.courts>100))throw Error('Nombre de terrains invalide.');if(!Array.isArray(s.teams)||!Array.isArray(s.criteria)||!Array.isArray(s.absent)||!Array.isArray(s.matches)||s.teams.length>200||s.criteria.length>50||s.matches.length>1000)throw Error('Séance invalide.');const pupilIds=new Set(c.students.map(p=>p.id)),teamIds=new Set(),members=new Set(),criteria=new Map();
  for(const t of s.teams){if(!/^id_[a-zA-Z0-9]+$/.test(t.id)||teamIds.has(t.id))throw Error('Équipe invalide.');teamIds.add(t.id);str(t.name);if(!colors.includes(t.color)||!Array.isArray(t.members)||t.members.length>6)throw Error('Équipe invalide.');for(const p of t.members){if(!pupilIds.has(p)||members.has(p))throw Error('Élève affecté deux fois.');members.add(p)}}
  for(const k of s.criteria){if(!/^id_[a-zA-Z0-9]+$/.test(k.id)||criteria.has(k.id))throw Error('Critère invalide.');str(k.label);if(!['individual','team'].includes(k.scope)||!['level','binary','counter'].includes(k.type)||!(k.targets===null||Array.isArray(k.targets)&&k.targets.every(x=>pupilIds.has(x))))throw Error('Critère invalide.');criteria.set(k.id,k)}
  if(s.absent.some(x=>!pupilIds.has(x)))throw Error('Présence invalide.');

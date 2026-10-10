@@ -22,9 +22,9 @@ assert(field.indexOf('class="collective-area"')>field.indexOf('class="field-card
 assert(!field.includes('<details class="field-options"'));
 for(const action of ['rename-team','presence','terrain-mode','clock-reset'])assert(field.includes('data-action="'+action+'"'));
 console.log('PASS: élèves en zone distincte avant le collectif et options directement visibles.');
-run('actions.pool()');assert(node('dialog').open);assert.equal(run('session().matches.length'),3);
+run('actions.pool()');node('courtCount').value='1';run('dialogSubmit()');assert(node('dialog').open);assert.equal(run('session().matches.length'),3);
 assert(node('dialogBody').innerHTML.includes('poolRanking'));
-run('actions.pool()');assert.equal(run('session().matches.length'),3);
+run('actions.pool()');node('courtCount').value='1';run('dialogSubmit()');assert.equal(run('session().matches.length'),3);
 run("actions['pool-observe']({dataset:{id:session().matches[0].id}})");assert(!node('dialog').open);
 const previous=run('activeMatch');run("actions['pool-next']()");assert.notEqual(run('activeMatch'),previous);
 assert(node('content').innerHTML.includes('match-recap'));assert(!node('content').innerHTML.includes('id="quickOpponent"'));
@@ -33,3 +33,5 @@ assert(node('dialogBody').innerHTML.includes('Rotation 1'));assert(node('dialogB
 run("actions['pool-score']({dataset:{match:session().matches[0].id,team:session().matches[0].a,delta:'1'}})");
 assert.equal(run('session().matches[0].scoreA'),2);assert(node('poolRanking').innerHTML.includes('Classement'));
 console.log('PASS: cadres de rotations et boutons de score actualisant le classement.');
+run('actions.pool()');assert.equal(node('dialogTitle').textContent,'Combien de terrains ?');node('courtCount').value='2';run('dialogSubmit()');assert.equal(run('session().courts'),2);assert(node('dialogBody').innerHTML.includes('Au repos :'));assert(node('dialogBody').innerHTML.includes('match-referee'));
+console.log('PASS: choix des terrains puis validation et affichage des rôles.');
