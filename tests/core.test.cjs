@@ -1,0 +1,20 @@
+const assert=require('node:assert/strict'),C=require('../core.js');
+const db=C.empty(),{c,s}=C.addClass(db,'4B',Array.from({length:14},(_,i)=>'Élève '+i).join('\n'));
+const ids=c.students.map(p=>p.id),a=C.putTeam(s,c,ids.slice(0,4),'Bleus',C.colors[0]),b=C.putTeam(s,c,ids.slice(4,8),'Oranges',C.colors[1]);
+assert.throws(()=>C.putTeam(s,c,ids.slice(0,3),'Duplicata',C.colors[2]));
+assert.throws(()=>C.putTeam(s,c,ids.slice(8,10),'Deux',C.colors[2]));
+assert.throws(()=>C.putTeam(s,c,ids.slice(0,7),'Sept',C.colors[2]));
+const k=C.addCriterion(s,'Objectif personnel','individual','binary',[ids[0]]);
+assert.deepEqual(k.targets,[ids[0]]);
+C.setObservation(s,'',ids[0],k.id,0);assert.equal(s.observations[ids[0]][k.id],0);
+C.setObservation(s,'',ids[0],k.id,null);assert.equal(s.observations[ids[0]][k.id],undefined);
+const m=C.addMatch(s,a.id,b.id);C.setScore(m,'a',3);assert.equal(C.standings(s)[0].played,0);
+C.setScore(m,'b',1);assert.equal(C.standings(s)[0].team.id,a.id);assert.equal(C.standings(s)[0].points,3);
+C.setObservation(s,m.id,ids[0],k.id,1);C.setObservation(s,'',ids[0],k.id,0);assert.equal(m.observations[ids[0]][k.id],1);assert.equal(s.observations[ids[0]][k.id],0);
+assert.throws(()=>C.setScore(m,'b',-1));assert.throws(()=>C.setScore(m,'b',1.2));assert.equal(m.scoreB,1);
+assert.throws(()=>C.addMatch(s,a.id,a.id));
+const prior=JSON.stringify(s),next=C.newSession(db,c.id,s);assert.equal(JSON.stringify(s),prior);assert.equal(next.matches.length,0);assert.deepEqual(next.observations,{});assert.deepEqual(next.teams,s.teams);assert.notEqual(next.teams,s.teams);next.teams[0].name='Renommée';assert.equal(s.teams[0].name,'Bleus');
+assert.equal(C.appendStudents(c,'Élève 0\nNouvel élève'),1);
+assert.deepEqual(C.validate(JSON.parse(JSON.stringify(db))),db);
+for(const mutate of [d=>d.sessions[0].teams[1].members[0]=ids[0],d=>d.sessions[0].matches[0].b=a.id,d=>d.sessions[0].matches[0].scoreA=-1,d=>d.sessions[0].observations[ids[0]][k.id]=4,d=>d.sessions[0].teams[0].color='url(evil)',d=>d.sessions[0].criteria[0].targets=['unknown']]){const bad=structuredClone(db);mutate(bad);assert.throws(()=>C.validate(bad))}
+console.log('PASS: équipes uniques et limites, cibles individuelles, zéro distinct du vide, contextes par match, classement, scores invalides, historique et import.');
