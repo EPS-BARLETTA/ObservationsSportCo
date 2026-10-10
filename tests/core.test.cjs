@@ -40,3 +40,12 @@ assert.equal(deleted.classes.length,1);assert(deleted.sessions.every(s=>s.classI
 C.removeClass(deleted,two.c.id);assert.equal(deleted.classes.length,0);assert.equal(deleted.sessions.length,0);assert.equal(deleted.selectedClass,'');assert.equal(deleted.selectedSession,'');assert.doesNotThrow(()=>C.validate(deleted));
 assert.throws(()=>C.removeClass(deleted,'inconnue'));
 console.log('PASS: nettoyage Pronote, noms composés, suppression ciblée, autres classes préservées et suppression de la dernière classe.');
+
+const pronote='\uFEFFÉlèves;Encouragement/Valorisation;Né(e) le;Sexe;Adresse E-mail\r\n"TEST Alex";"Bravo";"01/01/2013";"Masculin";"autre@example.test"\r\n"DE TEST Anaïs";"Bravo;\nContinue";"02/02/2014";"Féminin";""';
+assert.equal(C.cleanRoster(pronote),'TEST Alex\nDE TEST Anaïs');
+assert.equal(C.cleanRoster('Prénom;Divers;Nom\nAnaïs;note;DE TEST'),'DE TEST Anaïs');
+assert.equal(C.cleanRoster('Élèves Encouragement/Valorisation Né(e) le Sexe Adresse E-mail'),'');
+const fixdb=C.empty(),fix=C.addClass(fixdb,'À nettoyer','Élèves Encouragement/Valorisation Né(e) le Sexe\nTEST Alex 01/01/2013 Masculin\nDE TEST Anaïs\nFICTIF Lou');
+const fi=fix.c.students.map(p=>p.id);C.putTeam(fix.s,fix.c,fi.slice(1),'Bleus',C.colors[0]);C.setObservation(fix.s,'',fi[1],fix.s.criteria[0].id,2);
+assert.deepEqual(C.repairClassRoster(fixdb,fix.c.id),{renamed:1,removed:1});assert.equal(fix.c.students[0].id,fi[1]);assert.equal(fix.c.students[0].name,'TEST Alex');assert.equal(fix.s.observations[fi[1]][fix.s.criteria[0].id],2);assert.doesNotThrow(()=>C.validate(fixdb));
+console.log('PASS: colonne Élèves Pronote, titres exclus, noms séparés, guillemets CSV et réparation avec identifiants et observations conservés.');

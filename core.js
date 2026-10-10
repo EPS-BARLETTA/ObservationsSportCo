@@ -11,18 +11,27 @@ function removeClass(db,classId){
  if(db.selectedClass===classId){db.selectedClass=db.classes[0]?.id||'';db.selectedSession=db.sessions.filter(s=>s.classId===db.selectedClass).at(-1)?.id||'';}
  else if(!db.sessions.some(s=>s.id===db.selectedSession))db.selectedSession=db.sessions.filter(s=>s.classId===db.selectedClass).at(-1)?.id||'';
 }
+function headerKey(text){return String(text).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
+function isRosterHeader(text){const k=headerKey(text);return /^(?:eleves|nom prenom|prenom nom)(?:$|\s)/.test(k)||['nom','prenom','classe','liste des eleves'].includes(k)}
+function csvRows(text,sep){const rows=[];let row=[],cell='',quoted=false;for(let i=0;i<text.length;i++){const ch=text[i];if(ch==='"'){if(quoted&&text[i+1]==='"'){cell+='"';i++}else quoted=!quoted}else if(!quoted&&ch===sep){row.push(cell);cell=''}else if(!quoted&&(ch==='\n'||ch==='\r')){if(ch==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(x=>x.trim()))rows.push(row);row=[];cell=''}else cell+=ch}row.push(cell);if(row.some(x=>x.trim()))rows.push(row);return rows}
 function cleanRoster(text){
- const rows=text.replace(/^\uFEFF/,'').split(/\r?\n/),names=[];
- for(let row of rows){
-  row=row.trim();if(!row)continue;
-  row=row.replace(/\d{1,2}[/.\-]\d{1,2}[/.\-]\d{2,4}[\s\S]*$/,'');
-  row=row.replace(/(?:^|[\s;,])(?:Masculin|Féminin|Feminin)\b[\s\S]*$/i,'');
-  row=row.replace(/^\s*\d+[\s;,.]+/,'').replace(/[\t;,]+/g,' ').replace(/"/g,'').replace(/\s+/g,' ').trim();
-  if(!row||/^(?:nom(?: et)? pr[ée]nom|pr[ée]nom nom|nom|pr[ée]nom|classe|liste des [ée]l[èe]ves)\b/i.test(row)||!/[a-zÀ-ÿ]/i.test(row))continue;
+ text=text.replace(/^\uFEFF/,'');const first=text.split(/\r?\n/).find(x=>x.trim())||'';
+ const sep=[';','\t',','].sort((a,b)=>first.split(b).length-first.split(a).length)[0];
+ const rows=first.includes(sep)?csvRows(text,sep):text.split(/\r?\n/).map(x=>[x]);
+ const headers=(rows[0]||[]).map(headerKey),full=headers.findIndex(x=>['eleves','eleve','nom prenom','prenom nom','nom et prenom'].includes(x)),last=headers.findIndex(x=>['nom','nom de famille'].includes(x)),given=headers.findIndex(x=>['prenom','prenoms'].includes(x));
+ const hasHeader=full>=0||(last>=0&&given>=0);const names=[];
+ for(const cells of hasHeader?rows.slice(1):rows){
+  let row=full>=0?cells[full]||'':last>=0&&given>=0?(cells[last]||'')+' '+(cells[given]||''):cells.join(' ');
+  row=row.trim();if(!row||isRosterHeader(row))continue;
+  {row=row.replace(/\d{1,2}[/.\-]\d{1,2}[/.\-]\d{2,4}[\s\S]*$/,'').replace(/(?:^|[\s;,])(?:Masculin|Féminin|Feminin)\b[\s\S]*$/i,'').replace(/^\s*\d+[\s;,.]+/,'')}
+  row=row.replace(/\s+/g,' ').trim();if(!row||isRosterHeader(row)||!/[a-zÀ-ÿ]/i.test(row))continue;
   if(!names.some(n=>n.toLocaleLowerCase('fr')===row.toLocaleLowerCase('fr')))names.push(row);
  }
  return names.join('\n');
 }
+function rosterRepairPlan(c){return c.students.map(p=>({id:p.id,name:isRosterHeader(p.name)?'':cleanRoster(p.name)})).filter(p=>p.name!==c.students.find(x=>x.id===p.id).name)}
+function repairClassRoster(db,classId){const c=db.classes.find(c=>c.id===classId);if(!c)throw Error('Classe inconnue.');const plan=rosterRepairPlan(c),removed=new Set(plan.filter(p=>!p.name).map(p=>p.id));for(const p of plan){if(p.name)c.students.find(x=>x.id===p.id).name=p.name}c.students=c.students.filter(p=>!removed.has(p.id));for(const s of db.sessions.filter(s=>s.classId===classId)){s.teams.forEach(t=>t.members=t.members.filter(id=>!removed.has(id)));s.absent=s.absent.filter(id=>!removed.has(id));s.criteria.forEach(k=>{if(k.targets)k.targets=k.targets.filter(id=>!removed.has(id))});for(const x of [s,...s.matches])for(const id of removed){delete x.observations[id];delete x.notes[id]}}return {renamed:plan.length-removed.size,removed:removed.size}}
+
 function appendStudents(c,text){const seen=new Set(c.students.map(p=>p.name.toLocaleLowerCase('fr')));let count=0;for(const name of text.split(/\r?\n/).map(n=>n.trim()).filter(Boolean)){const key=name.toLocaleLowerCase('fr');if(!seen.has(key)){c.students.push({id:uid(),name});seen.add(key);count++}}return count}
 function newSession(db,classId,previous){const s={id:uid(),classId,label:'Séance '+(db.sessions.filter(x=>x.classId===classId).length+1),date:new Date().toLocaleDateString('sv-SE'),sport:previous?.sport||'Basketball',teams:previous?structuredClone(previous.teams):[],criteria:previous?structuredClone(previous.criteria):[
 {id:uid(),label:'Se démarquer',scope:'individual',type:'level',targets:null},
@@ -57,6 +66,6 @@ function validate(db){
  }
  if(typeof db.selectedClass!=='string'||typeof db.selectedSession!=='string')throw Error('Sélection invalide.');return db;
 }
-const API={colors,uid,empty,addClass,removeClass,cleanRoster,appendStudents,newSession,putTeam,moveStudent,addCriterion,setObservation,addMatch,setScore,standings,valuesFor,validate};if(typeof module!=='undefined')module.exports=API;else root.SportCo=API;
+const API={colors,uid,empty,addClass,removeClass,cleanRoster,rosterRepairPlan,repairClassRoster,appendStudents,newSession,putTeam,moveStudent,addCriterion,setObservation,addMatch,setScore,standings,valuesFor,validate};if(typeof module!=='undefined')module.exports=API;else root.SportCo=API;
 })(typeof window!=='undefined'?window:globalThis);
 

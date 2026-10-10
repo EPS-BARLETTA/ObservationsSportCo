@@ -38,3 +38,7 @@ La vérification couvre également les déplacements, la limite de six élèves,
 ## Version 1.1
 
 Suppression ciblée d’une classe avec confirmation et export de sauvegarde proposé : ses séances sont retirées, les autres classes sont préservées. Import TXT/CSV/TSV ou collage Pronote avec nettoyage et vérification avant enregistrement. La première date et les informations suivantes sont retirées de chaque ligne ; les noms composés sont conservés. Tester le format de son export avant de valider.
+
+## Version 1.2
+
+Lecture CSV avec guillemets et champs multilignes. Détection de la colonne Élèves de Pronote, ou des colonnes Nom et Prénom ; seules ces colonnes sont importées. Les titres sont ignorés. Bouton de réparation de la classe existante avec aperçu et confirmation, conservant les identifiants des élèves, leurs observations et leurs équipes.
