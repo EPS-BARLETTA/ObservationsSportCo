@@ -33,3 +33,12 @@ body.terrain-focus{background:#f5f7f2}.terrain-focus header,.terrain-focus .topb
 .field-cards>.observer{flex:1 0 230px;min-width:230px;scroll-snap-align:start}
 .field-layout{display:block}.collective-area{margin-top:18px;padding-top:14px;border-top:1px solid #d7dfd3}
 @media(max-width:600px){.field-cards>.observer{flex-basis:260px;min-width:260px}}
+
+/* v1.10 : cartes adaptées au groupe, collectif réparti à parts égales. */
+.field-cards{display:grid;grid-template-columns:repeat(var(--pupil-columns,3),minmax(0,1fr));overflow:visible;scroll-snap-type:none;padding-bottom:0;align-items:start}
+.field-cards>.observer{min-width:0}.field-layout .criterion .row{flex-wrap:wrap;gap:4px}.field-layout .criterion-title{overflow-wrap:anywhere}
+.collective-criteria{display:grid;grid-template-columns:repeat(var(--criteria-count,1),minmax(0,1fr));gap:16px}.collective-criteria>.criterion{min-width:0;padding:14px;border:1px solid var(--line);background:white;border-radius:12px}.collective-criteria .levels,.collective-criteria .binary{max-width:none}
+.score-selection{display:flex;align-items:center;gap:12px;max-width:100%}.opponent-button{display:block;min-width:110px;max-width:180px}.opponent-button>span{display:block;font-size:11px;font-weight:700}.opponent-button select{width:100%;min-height:44px;padding:7px 10px;font-size:13px;border-color:#8cae9e;background:#f2f6ef}.field-score-row{gap:20px}.compact-clock .clock-time{font-size:32px;min-width:94px}
+@media(max-width:1000px){.field-cards{grid-template-columns:repeat(min(var(--pupil-columns,3),3),minmax(0,1fr))}}
+@media(max-width:720px){.field-cards{grid-template-columns:repeat(min(var(--pupil-columns,3),2),minmax(0,1fr))}.collective-criteria{grid-template-columns:repeat(min(var(--criteria-count,1),2),minmax(0,1fr))}}
+@media(max-width:480px){.field-cards,.collective-criteria{grid-template-columns:minmax(0,1fr)}.score-selection{flex:1 1 100%;justify-content:flex-start}.score-selection .fast-score{flex:0 1 auto}.compact-clock .clock-time{font-size:29px;min-width:85px}}
