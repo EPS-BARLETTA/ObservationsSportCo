@@ -58,3 +58,7 @@ Désactivation du zoom au double-tap via touch-action: manipulation ; zoom à de
 ## Version 1.6
 
 Activité saisie dans un champ texte libre en haut de l’application, avec sauvegarde immédiate. Chrono libre de séance visible dès l’accueil, sans équipe ni match requis. Les chronos propres à chaque match restent disponibles sous les scores.
+
+## Version 1.7
+
+Mode terrain : masquer l’en-tête, la préparation et les menus pour conserver équipes, chrono, scores et observations ; bouton de sortie visible. Demande de plein écran natif lorsque disponible, avec mode terrain visuel conservé sur les navigateurs iPad qui ne le permettent pas. Sans match sélectionné, le chrono libre est affiché dans la page du terrain. Bouton Renommer directement sur les cartes et la page d’équipe.
