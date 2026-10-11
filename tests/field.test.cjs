@@ -66,3 +66,12 @@ const saved=JSON.parse(studentStorage.get('vauban-sportco-student-v1'));assert.e
 run("db=C.empty();actions['student-home']();actions['student-gateway']()");assert(node('content').innerHTML.includes('Mon équipe, mes observations'));assert.equal(run('db.classes.length'),0);
 run("actions['visual-guide']()");assert(node('dialogBody').innerHTML.includes('nom / prénom'));assert(node('dialogBody').innerHTML.includes('individuels et collectifs'));
 console.log('PASS: espace élève autonome sans classe, noms manuels, compteurs individuels et collectifs, bilans séparés, nouveau match vierge et sauvegarde locale.');
+run("studentData.config.players=[];studentAddNames('Martin Léa\\nDupont Noé\\nMartin Léa');studentData.config.team='Équipe';studentData.config.individual='Passes\\nPlacement';studentData.config.collective='Coopération';studentData.config.criterionTypes=[{scope:'individual',label:'Placement',type:'level'},{scope:'collective',label:'Coopération',type:'level'}];studentActive='';render()");
+assert.equal(run('studentData.config.players.length'),2);assert.notEqual(run('studentData.config.players[0].color'),run('studentData.config.players[1].color'));
+assert(node('content').innerHTML.includes('Coller plusieurs noms'));assert(node('content').innerHTML.includes('Appréciation · 4 niveaux'));
+run("studentStart();studentSet(studentCurrent().targets[0].id,studentCurrent().criteria[1].id,null,2);studentSet('team',studentCurrent().criteria[2].id,null,3);render()");
+assert(node('content').innerHTML.includes('student-levels'));assert(node('content').innerHTML.includes('--player:'));
+assert.throws(()=>run("studentSet('team',studentCurrent().criteria[2].id,null,4)"));
+run("actions['student-finish']()");assert(node('content').innerHTML.includes('Acquis'));assert(node('content').innerHTML.includes('Très bien'));
+assert(run('validStudentData(JSON.parse(JSON.stringify(studentData)))'));
+console.log('PASS: noms en un champ et collage, couleurs distinctes, appréciations individuelles et collectives, bilan et sauvegarde.');
