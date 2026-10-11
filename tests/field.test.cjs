@@ -1,7 +1,7 @@
 const vm=require('node:vm'),fs=require('node:fs'),assert=require('node:assert/strict'),C=require('../core.js');
 const nodes=new Map(),handlers={},classes=new Set();
 const node=id=>{if(!nodes.has(id))nodes.set(id,{innerHTML:'',value:'',hidden:false,textContent:'',addEventListener(){},classList:{toggle(){}},close(){this.open=false},showModal(){this.open=true},focus(){},select(){}});return nodes.get(id)};
-const doc={getElementById:node,body:{classList:{toggle(k,v){v?classes.add(k):classes.delete(k)}}},addEventListener(k,f){handlers[k]=f},querySelector(){return null},querySelectorAll(){return []},documentElement:{}};
+const doc={getElementById:node,body:{classList:{toggle(k,v){v?classes.add(k):classes.delete(k)}}},addEventListener(k,f){const prior=handlers[k];handlers[k]=prior?e=>{prior(e);f(e)}:f},querySelector(){return null},querySelectorAll(){return []},documentElement:{}};
 const ctx=vm.createContext({SportCo:C,document:doc,window:{addEventListener(){}},localStorage:{getItem(){return null},setItem(){}},navigator:{},location:{protocol:'https:'},setTimeout(){},clearTimeout(){},setInterval(){},confirm(){return true},structuredClone,Date,console});
 vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'../app.js'),'utf8'),ctx);
 const run=code=>vm.runInContext(code,ctx);
@@ -64,7 +64,7 @@ run("actions['student-finish']()");assert(node('content').innerHTML.includes('Bi
 run("actions['student-setup']();studentStart()");assert.equal(run('studentData.records.length'),2);assert.equal(run('Object.keys(studentCurrent().values).length'),0);
 const saved=JSON.parse(studentStorage.get('vauban-sportco-student-v1'));assert.equal(saved.records.length,2);assert.equal(saved.config.players.length,2);
 run("db=C.empty();actions['student-home']();actions['student-gateway']()");assert(node('content').innerHTML.includes('Mon équipe, mes observations'));assert.equal(run('db.classes.length'),0);
-run("actions['visual-guide']()");assert(node('dialogBody').innerHTML.includes('nom / prénom'));assert(node('dialogBody').innerHTML.includes('individuels et collectifs'));
+run("actions['visual-guide']()");assert(node('dialogBody').innerHTML.includes('noms / prénoms'));assert(node('dialogBody').innerHTML.includes('individuels et collectifs'));
 console.log('PASS: espace élève autonome sans classe, noms manuels, compteurs individuels et collectifs, bilans séparés, nouveau match vierge et sauvegarde locale.');
 run("studentData.config.players=[];studentAddNames('Martin Léa\\nDupont Noé\\nMartin Léa');studentData.config.team='Équipe';studentData.config.individual='Passes\\nPlacement';studentData.config.collective='Coopération';studentData.config.criterionTypes=[{scope:'individual',label:'Placement',type:'level'},{scope:'collective',label:'Coopération',type:'level'}];studentActive='';render()");
 assert.equal(run('studentData.config.players.length'),2);assert.notEqual(run('studentData.config.players[0].color'),run('studentData.config.players[1].color'));
@@ -82,3 +82,18 @@ run("db=C.empty();C.addClass(db,'Test','Nom Prénom');C.newSession(db,cls().id);
 const classId=run('cls().id'),sessionId=run('session().id');run("actions['delete-session']()");assert.equal(run('db.sessions.length'),2);run('dialogSubmit()');assert.equal(run('db.sessions.length'),1);assert.equal(run('cls().id'),classId);assert.notEqual(run('session().id'),sessionId);
 run("actions['delete-session']();dialogSubmit()");assert.equal(run('db.sessions.length'),0);assert.equal(run('db.classes.length'),1);assert(node('content').innerHTML.includes('Aucune séance'));assert.equal(run('cls().students.length'),1);
 console.log('PASS: suppressions ciblées, confirmation annulable, préparation élèves conservée, dernière séance supprimée sans recréation automatique.');
+// Teacher QR preparation and student deep link do not transmit identities or erase history.
+ctx.btoa=s=>Buffer.from(s,'binary').toString('base64');ctx.atob=s=>Buffer.from(s,'base64').toString('binary');
+vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'../student-share.js'),'utf8'),ctx);
+run("sharePreparation={activity:'Basket 🏀',individual:'Passes réussies\\nDémarquage',collective:'Coopérer',types:[{scope:'collective',label:'Coopérer',type:'level'}]}");
+const encoded=run('encodeShare(sharePayload())');assert.equal(run(`decodeShare('${encoded}')[1]`),'Basket 🏀');assert.equal(run(`decodeShare('${encoded}')[3][0][1]`),1);
+assert(!run('shareURL()').includes('observer'));const previousRecords=run('studentData.records.length');
+run(`receiveShare('${encoded}')`);assert.equal(run('studentData.records.length'),previousRecords);assert.equal(run('studentData.config.shared'),true);assert(node('content').innerHTML.includes('Déjà préparés'));assert(!node('content').innerHTML.includes('data-student-field="individual"'));
+assert.throws(()=>run("decodeShare('invalid')"));assert.throws(()=>run("validateShare([1,'Sport',[],[]])"));
+run("actions['student-gateway']()");assert(node('content').innerHTML.includes('Préparation professeur'));run("actions['student-prepare']()");assert(node('content').innerHTML.includes('Afficher le QR code'));
+run("actions['student-manual']()");assert.equal(run('studentData.config.shared'),false);assert(node('content').innerHTML.includes('data-student-field="individual"'));
+console.log('PASS: QR Unicode, types, validation, noms exclus, bilans conservés, réception directe et observables verrouillés.');
+const colorTeam=run("session()");
+const colorDb=C.empty(),colorClass=C.addClass(colorDb,'Test couleur','A\nB\nC').c,colorSession=C.newSession(colorDb,colorClass.id);
+C.putTeam(colorSession,colorClass,colorClass.students.map(p=>p.id),'Orange fluo','#ff6600');C.validate(colorDb);assert.equal(colorSession.teams[0].color,'#ff6600');
+console.log('PASS: teinte personnalisée conservée après validation de sauvegarde.');
