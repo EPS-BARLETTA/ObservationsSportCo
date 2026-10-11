@@ -49,3 +49,22 @@ const report=run('buildReportHTML()');assert(report.startsWith('<!doctype html>'
 const firstId=run('cls().students[0].id');assert(report.includes('href="#'+firstId+'"'));assert(report.includes('id="'+firstId+'"'));
 run("actions['pupil-report']({dataset:{id:cls().students[0].id}})");assert(node('dialogBody').innerHTML.includes('Mon bilan individuel'));
 console.log('PASS: bilan par élève, navigation autonome sans réseau, noms échappés, individuel/collectif et résultats sans détail des matchs.');
+
+vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'../student.js'),'utf8'),ctx);
+
+run("session().peerConfig={modes:['self','peers','team'],maxTargets:3,criteria:structuredClone(peerDefaults)};actions['peer-entry']()");
+assert(classes.has('terrain-focus'));assert(node('content').innerHTML.includes('Je suis…'));
+const teacherBefore=run('JSON.stringify([session().observations,session().matches])');
+run("peerCreate(cls().students[0].id,'peers',[cls().students[1].id,cls().students[2].id]);peerValue(cls().students[1].id,'peer0',null,1);render()");
+assert.equal(run('peerCurrent().observations[cls().students[1].id].peer0'),1);
+assert(node('content').innerHTML.includes('peer-counter'));
+run("peerValue(cls().students[1].id,'peer0',null)");assert.equal(run('peerCurrent().observations[cls().students[1].id].peer0'),undefined);
+run("actions['peer-finish']()");assert(node('content').innerHTML.includes('Mon bilan'));
+assert.throws(()=>run("peerValue(cls().students[1].id,'peer0',null,1)"));
+assert.equal(run('JSON.stringify([session().observations,session().matches])'),teacherBefore);
+run("peerCreate(cls().students[0].id,'team',[session().teams[0].id]);peerValue(session().teams[0].id,'peer3',null,1);actions['peer-list']()");
+assert(node('content').innerHTML.includes('Reprendre'));
+assert.equal(run('C.validate(JSON.parse(JSON.stringify(db))).sessions.find(s=>s.id===session().id).peerRecords.length'),2);
+run("peerCreate(cls().students[0].id,'self',[])");assert.equal(run('peerCurrent().targets[0].id'),run('cls().students[0].id'));
+assert.throws(()=>run("peerCreate(cls().students[0].id,'peers',cls().students.slice(1,5).map(p=>p.id))"));
+console.log('PASS: mode élèves, plusieurs cibles, autoévaluation, collectif, limites, bilan, reprise et sauvegarde distincte du professeur.');
