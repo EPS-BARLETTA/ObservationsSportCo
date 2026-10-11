@@ -68,3 +68,10 @@ assert.equal(run('C.validate(JSON.parse(JSON.stringify(db))).sessions.find(s=>s.
 run("peerCreate(cls().students[0].id,'self',[])");assert.equal(run('peerCurrent().targets[0].id'),run('cls().students[0].id'));
 assert.throws(()=>run("peerCreate(cls().students[0].id,'peers',cls().students.slice(1,5).map(p=>p.id))"));
 console.log('PASS: mode élèves, plusieurs cibles, autoévaluation, collectif, limites, bilan, reprise et sauvegarde distincte du professeur.');
+run("actions.landing()");assert(classes.has('gateway-mode'));assert(node('content').innerHTML.includes('Mode professeur'));assert(node('content').innerHTML.includes('Mode élève'));assert(!node('content').innerHTML.includes('Créer les équipes'));
+run("actions['student-gateway']()");assert(node('content').innerHTML.includes('Prêt à observer'));assert(!node('content').innerHTML.includes('Préparer le mode élèves'));
+run("actions['student-session']({dataset:{id:session().id}})");assert(classes.has('terrain-focus'));assert(!classes.has('gateway-mode'));assert(node('content').innerHTML.includes('Je suis…'));
+run("actions['peer-exit']()");assert.equal(run('view'),'landing');
+run("actions['visual-guide']()");assert(node('dialogBody').innerHTML.includes('Mode professeur'));assert(node('dialogBody').innerHTML.includes('Mode élève'));assert(node('dialogBody').innerHTML.includes('guide-tone-3'));
+run("actions['close-dialog']();actions['teacher-entry']()");assert.equal(run('view'),'home');assert(!classes.has('gateway-mode'));
+console.log('PASS: page de garde, entrées distinctes, espace élèves sans préparation et guide coloré pour les deux modes.');
