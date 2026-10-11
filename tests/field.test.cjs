@@ -75,3 +75,10 @@ assert.throws(()=>run("studentSet('team',studentCurrent().criteria[2].id,null,4)
 run("actions['student-finish']()");assert(node('content').innerHTML.includes('Acquis'));assert(node('content').innerHTML.includes('Très bien'));
 assert(run('validStudentData(JSON.parse(JSON.stringify(studentData)))'));
 console.log('PASS: noms en un champ et collage, couleurs distinctes, appréciations individuelles et collectives, bilan et sauvegarde.');
+const studentBefore=run('studentData.records.length'),configBefore=run('JSON.stringify(studentData.config)'),deletedStudent=run('studentActive');
+ctx.confirm=()=>false;run("actions['student-delete']({dataset:{id:studentActive}})");assert.equal(run('studentData.records.length'),studentBefore);
+ctx.confirm=()=>true;run("actions['student-delete']({dataset:{id:studentActive}})");assert.equal(run('studentData.records.length'),studentBefore-1);assert.equal(run('studentActive'),'');assert.equal(run('JSON.stringify(studentData.config)'),configBefore);assert(!run('studentData.records.some(r=>r.id===\"'+deletedStudent+'\")'));
+run("db=C.empty();C.addClass(db,'Test','Nom Prénom');C.newSession(db,cls().id);view='home';render()");
+const classId=run('cls().id'),sessionId=run('session().id');run("actions['delete-session']()");assert.equal(run('db.sessions.length'),2);run('dialogSubmit()');assert.equal(run('db.sessions.length'),1);assert.equal(run('cls().id'),classId);assert.notEqual(run('session().id'),sessionId);
+run("actions['delete-session']();dialogSubmit()");assert.equal(run('db.sessions.length'),0);assert.equal(run('db.classes.length'),1);assert(node('content').innerHTML.includes('Aucune séance'));assert.equal(run('cls().students.length'),1);
+console.log('PASS: suppressions ciblées, confirmation annulable, préparation élèves conservée, dernière séance supprimée sans recréation automatique.');

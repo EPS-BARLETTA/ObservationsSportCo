@@ -4,6 +4,7 @@ const colors=['#245de9','#d56c17','#168663','#8e54b5','#b83d65','#267d91','#7665
 const uid=()=> 'id_'+(globalThis.crypto?.randomUUID?.()||Math.random().toString(36).slice(2)+Date.now()).replace(/-/g,'');
 const empty=()=>({version:1,classes:[],sessions:[],selectedClass:'',selectedSession:''});
 function addClass(db,name,names){if(!name.trim())throw Error('Donne un nom à la classe.');const c={id:uid(),name:name.trim(),students:[]};db.classes.push(c);appendStudents(c,names);db.selectedClass=c.id;const s=newSession(db,c.id);return {c,s}}
+function removeSession(db,sessionId){const s=db.sessions.find(s=>s.id===sessionId);if(!s)throw Error('Séance inconnue.');db.sessions=db.sessions.filter(x=>x.id!==sessionId);if(db.selectedSession===sessionId)db.selectedSession=db.sessions.filter(x=>x.classId===db.selectedClass).at(-1)?.id||'';return s}
 function removeClass(db,classId){
  if(!db.classes.some(c=>c.id===classId))throw Error('Classe inconnue.');
  db.classes=db.classes.filter(c=>c.id!==classId);
@@ -118,6 +119,6 @@ function validate(db){
  }
  if(typeof db.selectedClass!=='string'||typeof db.selectedSession!=='string')throw Error('Sélection invalide.');return db;
 }
-const API={colors,uid,empty,addClass,removeClass,cleanRoster,rosterRepairPlan,repairClassRoster,appendStudents,newSession,putTeam,moveStudent,addCriterion,setObservation,addMatch,quickMatch,changeTeamScore,clockRemaining,clockDuration,clockStart,clockPause,clockReset,setScore,ensurePool,poolRotations,standings,valuesFor,validate};if(typeof module!=='undefined')module.exports=API;else root.SportCo=API;
+const API={colors,uid,empty,addClass,removeSession,removeClass,cleanRoster,rosterRepairPlan,repairClassRoster,appendStudents,newSession,putTeam,moveStudent,addCriterion,setObservation,addMatch,quickMatch,changeTeamScore,clockRemaining,clockDuration,clockStart,clockPause,clockReset,setScore,ensurePool,poolRotations,standings,valuesFor,validate};if(typeof module!=='undefined')module.exports=API;else root.SportCo=API;
 })(typeof window!=='undefined'?window:globalThis);
 
