@@ -77,7 +77,13 @@ body.terrain-focus{background:#f5f7f2}.terrain-focus header,.terrain-focus .topb
 .peer-card:not(.student-collective)>h3{grid-column:1/-1;margin:0 0 4px;padding-bottom:8px}
 .student-team-criteria{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
 .peer-card .criterion{display:flex;flex-direction:column;min-width:0;min-height:94px;gap:6px;padding:10px;margin:0;background:#eaf5e8;border:1px solid #d1e5cc;border-radius:12px}
-.peer-card .criterion:nth-of-type(even){background:#eaf2ff;border-color:#d1e0f5}
+/* Une teinte différente par observable, individuel comme collectif. */
+.peer-card .criterion:nth-of-type(6n+1){background:#eaf5e8;border-color:#d1e5cc}
+.peer-card .criterion:nth-of-type(6n+2){background:#eaf2ff;border-color:#d1e0f5}
+.peer-card .criterion:nth-of-type(6n+3){background:#fff4d9;border-color:#f0dfad}
+.peer-card .criterion:nth-of-type(6n+4){background:#f8e8f5;border-color:#e7cde0}
+.peer-card .criterion:nth-of-type(6n+5){background:#e7f6f4;border-color:#c7e6e0}
+.peer-card .criterion:nth-of-type(6n){background:#fff0e5;border-color:#efd2bd}
 .peer-card .criterion>strong{font-size:13px;line-height:1.25;overflow-wrap:anywhere}
 .peer-card .peer-counter{display:flex;justify-content:center;align-items:center;gap:6px;margin:auto 0 0}
 .peer-card .peer-counter button{flex:0 0 44px;width:44px;min-width:44px;height:44px;min-height:44px;padding:0;font-size:23px}
